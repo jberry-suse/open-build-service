@@ -1,6 +1,6 @@
 class LocalBuildResult
   include ActiveModel::Model
-  attr_accessor :project, :package, :repository, :architecture, :code
+  attr_accessor :project, :package, :repository, :architecture, :code, :state, :details
 
   def self.find_by(opts)
     find_by_project_and_package(opts[:project], opts[:package]).select { |buildresult|
@@ -20,7 +20,9 @@ class LocalBuildResult
                                                     package: status['package'],
                                                     repository: result['repository'],
                                                     architecture: result['arch'],
-                                                    code: status['code']
+                                                    code: status['code'],
+                                                    state: result['state'],
+                                                    details: result['details']
                                                    )
       end
     end
