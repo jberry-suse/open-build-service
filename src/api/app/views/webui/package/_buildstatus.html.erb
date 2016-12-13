@@ -1,26 +1,41 @@
-<div id="package_buildstatus">
-  <% if !@project.repositories.any? %>
-    <%= render "no_repositories" %>
-  <% else %>
-    <% @package.repositories.each do |repository| %>
-      <% repository.architectures.each do |architecture| %>
-        <h3> <%= repository %> - <%= architecture %> </h3>
-        <table>
-        <% LocalBuildResult.find_by(project: @project.name,
-                                    package: @package.name,
-                                    repository: repository.name,
-                                    architecture: architecture.name).each do |build_result| %>
+<% @package.get_multibuild_packages.each do |package| %>
+  <h3><%= package %></h3>
+  <div id="package_buildstatus">
+    <% if !@project.repositories.any? %>
+      <%= render "no_repositories" %>
+    <% else %>
+      <table>
+        <%# FIXME: includes %>
+        <% @package.repositories.each do |repository| %>
           <tr>
-            <td><%= build_result.package %></td>
-            <td><%= build_result.code %></td>
+            <td title="<%= repository %>" rowspan="<%= repository.architectures.length %>" >
+              <%= link_to(word_break(repository.name, 22), { action: :binaries, controller: :package, project: @project, package: @package, repository: repository.name }, { title: "Binaries for #{repository}" }) %>
+            </td>
+            <% repository.architectures.each.with_index do |architecture,index| %>
+              <% if index > 0 %>
+                <tr>
+              <% end %>
+                <% LocalBuildResult.find_by(@project.name,
+                                            package,
+                                            repository.name,
+                                            architecture.name).each do |build_result| %>
+                  <td class="arch">
+                    <div class="nowrap" style="margin: 0 0.5ex">
+                      <%= repo_status_icon(build_result.state, build_result.details) %> <%= architecture %>
+                    </div>
+                  </td>
+                  <%= arch_repo_table_cell(repository.name, architecture, package, { "code" => build_result.code, "details" => build_result.details }) %>
+                <% end %>
+              <% if index > 0 %>
+                </tr>
+              <% end %>
+            <% end %>
           </tr>
         <% end %>
       </table>
-      <% end %>
     <% end %>
-  <% end %>
-</div>
-
+  </div>
+<% end %>
 <%= javascript_tag do %>
     $('.unresolvable, .blocked').click(function() {
         var title = $(this).attr('title');
