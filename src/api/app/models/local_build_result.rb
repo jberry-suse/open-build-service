@@ -9,6 +9,8 @@ class LocalBuildResult
                                                                       }
   end
 
+  private
+
   def self.find_by_project_and_package(project, package)
     buildresults = Buildresult.find_hashed( project: project, package: package, view: 'status', multibuild: '1', locallink: '1')
     local_build_results = []
