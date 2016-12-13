@@ -367,6 +367,36 @@ class Package < ApplicationRecord
     result
   end
 
+  def is_multibuild?
+    source_file("_multibuild") || source_file("_link")
+  rescue ActiveXML::Transport::NotFoundError
+    false
+  end
+
+  # Requests build results of package container and returns an array of
+  # package names of multibuild packages (_link or _multibuild).
+  # Package names of first build result is used, since they are allways
+  # included.
+  def get_multibuild_packages
+    return [name] unless is_multibuild?
+
+    build_result = Buildresult.find_hashed(
+      project:    project.name,
+      package:    name,
+      view:       'status',
+      multibuild: '1',
+      locallink:  '1'
+    )
+
+    # package doesn't exist
+    return [] if build_result.empty?
+
+    build_result["result"].
+      first["status"].
+      map { |build_result| build_result["package"] }.
+      reject { |package_name| package_name == name }
+  end
+
   def update_project_for_product
     if name == '_product'
       project.update_product_autopackages
