@@ -2,11 +2,11 @@ class LocalBuildResult
   include ActiveModel::Model
   attr_accessor :project, :package, :repository, :architecture, :code, :state, :details
 
-  def self.find_by(opts)
-    find_by_project_and_package(opts[:project], opts[:package]).select { |buildresult|
-                                                                         buildresult.repository == opts[:repository] &&
-                                                                         buildresult.architecture == opts[:architecture]
-                                                                      }
+  def self.find_by(project, package, repository, architecture)
+    find_by_project_and_package(project, package).
+      select { |buildresult| buildresult.repository == repository &&
+                             buildresult.architecture == architecture
+             }
   end
 
   private
@@ -26,8 +26,9 @@ class LocalBuildResult
                                                    )
       end
     end
-    if local_build_results.any?{ |local_build_result| local_build_result.package.start_with?("#{package}:") }
-      local_build_results.reject!{ |local_build_result| local_build_result.package == package }
+
+    if local_build_results.any? { |build_result| build_result.package.start_with?("#{package}:") }
+      local_build_results.reject! { |build_result| build_result.package == package }
     end
 
     local_build_results
